@@ -1,0 +1,78 @@
+import java.util.*;
+
+public class ShamirSecretSharing {
+    public static double lagrangeInterpolation(double[][] points) {
+        int n = points.length;
+        double result = 0.0;
+
+        for (int i = 0; i < n; i++) {
+            double xi = points[i][0];
+            double yi = points[i][1];
+            double li = 1.0;
+            for (int j = 0; j < n; j++) {
+                if (i != j) {
+                    double xj = points[j][0];
+                    li *= (0 - xj) / (xi - xj);
+                }
+            }
+            result += yi * li;
+        }
+
+        return result;
+    }
+
+    public static long convertToBase10(String value, int base) {
+        return Long.parseLong(value, base);
+    }
+    public static double[][] generatePoints(Map<Integer, Map<String, String>> shares, int n) {
+        double[][] points = new double[n][2];
+        int index = 0;
+        for (Map.Entry<Integer, Map<String, String>> entry : shares.entrySet()) {
+            int x = entry.getKey(); 
+            String value = entry.getValue().get("value"); 
+            int base = Integer.parseInt(entry.getValue().get("base"));
+
+            long y = convertToBase10(value, base);  
+            points[index][0] = x;
+            points[index][1] = y;
+            index++;
+        }
+
+        return points;
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        
+        System.out.print("Enter the total number of shares (n): ");
+        int n = scanner.nextInt();
+        System.out.print("Enter the threshold number of shares needed (k): ");
+        int k = scanner.nextInt();
+
+        Map<Integer, Map<String, String>> shares = new HashMap<>();
+
+        for (int i = 1; i <= n; i++) {
+            System.out.print("Enter the base for share " + i + ": ");
+            int base = scanner.nextInt();
+            scanner.nextLine();  
+            System.out.print("Enter the value for share " + i + ": ");
+            String value = scanner.nextLine();
+
+            Map<String, String> shareData = new HashMap<>();
+            shareData.put("base", Integer.toString(base));
+            shareData.put("value", value);
+
+            shares.put(i, shareData);
+        }
+
+    
+        double[][] points = generatePoints(shares, n);
+
+    
+        double[][] selectedPoints = Arrays.copyOfRange(points, 0, k);
+
+        double constantTerm = lagrangeInterpolation(selectedPoints);
+        System.out.println("The constant term (secret) is: " + (long) constantTerm);
+    }
+}
